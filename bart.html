@@ -1,0 +1,96 @@
+<!doctype html>
+<html manifest="cache.manifest">
+  <head>
+    <title>BART Trains leaving Montgomery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.3" />
+    <style>
+      body {
+        font-family: Roboto,Helvetica,Arial,freesans,clean,sans-serif;
+        font-size: 12px;
+        overflow-x: hidden;
+        max-width: 220px;
+      }
+
+      .train {
+        margin-bottom: 0.5em;
+        white-space: nowrap;
+      }
+
+      .train span.color {
+        display: inline-block;
+        width: 0.75em;
+        height: 0.75em;
+        border: 1px solid #666666;
+        margin-top: 0.1em;
+        margin-right: 0.25em;
+      }
+
+
+      .train span.minutes {
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .train span.length {
+        color: #888888;
+      }
+
+      #bart-advisories {
+        margin: 0.5rem 0;
+      }
+
+      #estimate-info {
+        margin-top: 1em;
+        color: #888888;
+        font-size: 10px;
+      }
+
+      #muni {
+        margin-bottom: 0.5em;
+      }
+
+      #muni .pred:first-child {
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      #muni .pred:not(:first-child) {
+        color: #BBBBBB;
+      }
+
+      #muni-loading.hide,
+      #bart-loading.hide {
+        display: none;
+      }
+      a:link, a:visited {
+        text-decoration: none;
+        color: #800040;
+      }
+
+
+    </style>
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: http://developer.chrome.com/extensions/contentSecurityPolicy.html
+     -->
+    <script src="bart.js"></script>
+  </head>
+  <body>
+    <div id="muni"><span id="muni-buses"></span></div>
+    <div id="bart"><span id="bart-trains"></span></div>
+    <div id="bart-advisories">
+      <a href="http://m.bart.gov/schedules/advisories">BART Advisories</a>:
+      <span id="bart-advisory-list"></span>
+    </div>
+    <button id="reload">Reload</button>
+    <div id="estimate-info"></div>
+    <span id="muni-loading">Loading Muni...</span>
+    <span id="bart-loading">Loading Bart..</span>
+    <div id="en-route-times">
+      <ul id="bart-station-times"></ul>
+    </div>
+  </body>
+</html>
