@@ -2,12 +2,12 @@
 // http://api.bart.gov/api/sched.aspx?cmd=depart&orig=MONT&dest=NBRK&date=now&key=MW9S-E7SL-26DU-VV8V&b=2&a=2&l=1
 // http://api.bart.gov/api/sched.aspx?cmd=routesched&route=8&key=MW9S-E7SL-26DU-VV8V
 
-var ORIGIN = 'POWL'
+var ORIGIN = 'MONT'
 // var DESTINATIONS = ['RICH', 'PITT', 'CONC']
 var DESTINATION_COLORS = ['#ff0000', '#ffff33']
 var DESTINATION_DIRECTION = 'North'
 var API_KEY = 'MW9S-E7SL-26DU-VV8V'
-var TRAIN_TIME = 26;
+var TRAIN_TIME = 25;  // get from BART_STATIONS array below
 var WALKING_TIME = 9;
 var MUNI_AGENCY = 'sf-muni';
 var MUNI_ROUTE = '10';
@@ -28,7 +28,8 @@ var BART_STATIONS = [
   ["19th", 11, '19TH'],
   ["MacArthur", 8, 'MCAR'],
   ["Ashby", 5, 'ASHB'],
-  ["Berkeley", 2, 'DBRK']
+  ["Berkeley", 2, 'DBRK'],
+  ["North Berkeley", 0, 'NBRK']
 ]
 
 function addMinutesToNow (minutes) {
@@ -47,6 +48,8 @@ function formatAMPM(date) {
 }
 
 var etdGenerator = {
+  trainsLoadedAt: false,
+  trains: [],
 
   bartAdvisoryUrl: 'http://api.bart.gov/api/bsa.aspx?cmd=bsa&date=today&key=' +
     encodeURIComponent(API_KEY),
@@ -110,8 +113,9 @@ var etdGenerator = {
   },
 
   showTrains_: function (e) {
-
-    var trains = [];
+    this.trainsLoadedAt = moment();
+    this.trains = [];
+    console.log(this.trainsLoadedAt)
 
     var etds = e.target.responseXML.querySelectorAll('etd');
     for (var i = 0; i < etds.length; i++) {
@@ -119,38 +123,53 @@ var etdGenerator = {
       var estimates = etds[i].querySelectorAll('estimate');
       for (var j = 0; j < estimates.length; j++) {
         var minutes_raw = estimates[j].querySelector('minutes').childNodes[0].nodeValue;
-        trains.push({
+        var minutes = (minutes_raw == 'Leaving') ? 0 : parseInt(minutes_raw);
+        var momentTime = moment().add(minutes, 'minutes');
+
+        this.trains.push({
           'abbreviation': etds[i].querySelector('abbreviation').childNodes[0].nodeValue,
           'destination': etds[i].querySelector('destination').childNodes[0].nodeValue,
           'hexcolor': estimates[j].querySelector('hexcolor').childNodes[0].nodeValue,
-          'minutes': (minutes_raw == 'Leaving') ? 0 : parseInt(minutes_raw),
           'length': parseInt(estimates[j].querySelector('length').childNodes[0].nodeValue),
-          'direction': estimates[j].querySelector('direction').childNodes[0].nodeValue
+          'direction': estimates[j].querySelector('direction').childNodes[0].nodeValue,
+          'minutes': minutes,
+          'moment': momentTime,
+          'homeTime': momentTime.add(TRAIN_TIME + WALKING_TIME)
         });
       }
     }
 
-    trains = trains
+    this.trains = this.trains
       .filter(function(t){ return(t.direction == DESTINATION_DIRECTION && DESTINATION_COLORS.indexOf(t.hexcolor) != -1); })
       .sort(function (a, b) {
         return a.minutes - b.minutes;
     });
+      console.log(this.trains, this.trainsLoadedAt)
+  },
 
-    bartEl = document.getElementById('bart-trains');
-    while (bartEl.firstChild) bartEl.removeChild(bartEl.firstChild);
+  updateTimeDisplay: function () {
+    if (this.trainsLoadedAt !== undefined) {
+      var now = moment()
+      document.getElementById('bart-updated-at').innerHTML = "loaded trains " + this.trainsLoadedAt.fromNow();
 
-    trains.forEach(function(train){
-      var train_div = document.createElement('div');
-      train_div.className = 'train';
-      train_div.innerHTML = '<span class="color" style="background-color:'+ train.hexcolor + '"></span>' +
-        ' <span class="minutes">' + train.minutes + '</span>' +
-        ' <span class="destination">' + train.destination + '</span>' +
-        ' <span class="length">' + train.length + ' car</span>' +
-        ' <span class="home-time">' + formatAMPM(addMinutesToNow(train.minutes + TRAIN_TIME + WALKING_TIME)) + '</span>';
-      bartEl.appendChild(train_div);
-    });
+      bartEl = document.getElementById('bart-trains');
+      while (bartEl.firstChild) bartEl.removeChild(bartEl.firstChild);
 
-    document.getElementById('bart-loading').setAttribute('class', 'hide');
+      this.trains.forEach(function(train){
+        var train_div = document.createElement('div');
+        train_div.className = 'train';
+        train_div.innerHTML = '<span class="color" style="background-color:'+ train.hexcolor + '"></span>' +
+          ' <span class="minutes">' + train.moment.diff(now, 'minutes') + '</span>' +
+          ' <span class="destination">' + train.destination + '</span>' +
+          ' <span class="length">' + train.length + ' car</span>' +
+          ' <span class="home-time">' + train.homeTime.format("h:mm a") + '</span>';
+        bartEl.appendChild(train_div);
+      });
+
+      document.getElementById('bart-loading').setAttribute('class', 'hide');
+    } else {
+      document.getElementById('bart-updated-at').innerHTML = "No train data"
+    }
   }
 };
 
@@ -208,6 +227,7 @@ var reloadAllTheThings = function () {
 var setup = function () {
   reloadAllTheThings();
   showBartStationTimes();
+  var intervalID = setInterval(etdGenerator.updateTimeDisplay.bind(etdGenerator), 1000);
 
   document.getElementById("estimate-info").innerHTML = 'Arrival estimates include ' + TRAIN_TIME + ' minutes on train and ' + WALKING_TIME + ' minutes on foot.';
 

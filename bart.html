@@ -34,13 +34,16 @@
       .train span.length {
         color: #888888;
       }
-
+      #bart-updated-at {
+        color: #888888;
+        margin-bottom: 3px;
+      }
       #bart-advisories {
         margin: 0.5rem 0;
       }
 
       #estimate-info {
-        margin-top: 1em;
+        margin-top: 6px;
         color: #888888;
         font-size: 10px;
       }
@@ -79,18 +82,20 @@
       -
       - [1]: http://developer.chrome.com/extensions/contentSecurityPolicy.html
      -->
+    <script src="moment.min.js"></script>
     <script src="bart.js"></script>
   </head>
   <body>
     <div id="muni"><span id="muni-buses"></span></div>
-    <div id="bart"><span id="bart-trains"></span></div>
+    <div id="bart-loading">Loading Bart..</div>
+    <div id="bart"><div id="bart-trains"></div></div>
+    <div id="bart-updated-at"></div>
     <div id="bart-advisories">
       <a href="http://m.bart.gov/schedules/advisories">BART Advisories</a>:
       <span id="bart-advisory-list"></span>
     </div>
     <button id="reload">Reload</button>
     <div id="estimate-info"></div>
-    <span id="bart-loading">Loading Bart..</span>
     <div id="en-route-times">
       <ul id="bart-station-times"></ul>
     </div>
