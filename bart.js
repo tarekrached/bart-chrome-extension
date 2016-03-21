@@ -1,12 +1,13 @@
-// next version
+// http://api.bart.gov/docs/overview/index.aspx
 // http://api.bart.gov/api/sched.aspx?cmd=depart&orig=MONT&dest=NBRK&date=now&key=MW9S-E7SL-26DU-VV8V&b=2&a=2&l=1
+// http://api.bart.gov/api/sched.aspx?cmd=routesched&route=8&key=MW9S-E7SL-26DU-VV8V
 
-var ORIGIN = 'MONT'
+var ORIGIN = 'POWL'
 // var DESTINATIONS = ['RICH', 'PITT', 'CONC']
 var DESTINATION_COLORS = ['#ff0000', '#ffff33']
 var DESTINATION_DIRECTION = 'North'
 var API_KEY = 'MW9S-E7SL-26DU-VV8V'
-var TRAIN_TIME = 25;
+var TRAIN_TIME = 26;
 var WALKING_TIME = 9;
 var MUNI_AGENCY = 'sf-muni';
 var MUNI_ROUTE = '10';
@@ -16,14 +17,18 @@ var MUNI_DIR = '10_IB1';
 var NOW = new Date();
 
 var BART_STATIONS = [
-  ["Montgomery", 25],
-  ["Embarcadero", 23],
-  ["West Oakland", 16],
-  ["12th", 13],
-  ["19th", 11],
-  ["MacArthur", 8],
-  ["Ashby", 5],
-  ["Berkeley", 2]
+  ["16th Mission", 32, '16TH'],
+  ["24th Mission", 30, '24TH'],
+  ["Civic Center", 28, 'CIVC'],
+  ["Powell", 26, 'POWL'],
+  ["Montgomery", 25, 'MONT'],
+  ["Embarcadero", 23, 'EMBR'],
+  ["West Oakland", 16, 'WOAK'],
+  ["12th", 13, '12TH'],
+  ["19th", 11, '19TH'],
+  ["MacArthur", 8, 'MCAR'],
+  ["Ashby", 5, 'ASHB'],
+  ["Berkeley", 2, 'DBRK']
 ]
 
 function addMinutesToNow (minutes) {
@@ -187,7 +192,8 @@ var showBartStationTimes = function () {
   BART_STATIONS.forEach( function (s) {
     min = s[1] + WALKING_TIME;
     station = document.createElement('li');
-    station.innerHTML = s[0] + ': ' + min + ' mins';
+    station.innerHTML = '<a href="https://m.bart.gov/schedules/eta?stn=' +
+      s[2] + '">' + s[0] + '</a>: ' + min + ' mins';
     el.appendChild(station);
   });
 
@@ -196,7 +202,7 @@ var showBartStationTimes = function () {
 var reloadAllTheThings = function () {
   etdGenerator.requestETD();
   etdGenerator.requestAdvisories();
-  muniGenerator.requestMuni();
+  // muniGenerator.requestMuni();
 }
 
 var setup = function () {
