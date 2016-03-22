@@ -7,12 +7,13 @@ var ORIGIN = 'MONT'
 var DESTINATION_COLORS = ['#ff0000', '#ffff33']
 var DESTINATION_DIRECTION = 'North'
 var API_KEY = 'MW9S-E7SL-26DU-VV8V'
-var TRAIN_TIME = 25;  // get from BART_STATIONS array below
-var WALKING_TIME = 9;
+var TRAIN_MINUTES = 25;  // get from BART_STATIONS array below
+var WALKING_MINUTES = 9;
 var MUNI_AGENCY = 'sf-muni';
 var MUNI_ROUTE = '10';
 var MUNI_STOP = '3003';
 var MUNI_DIR = '10_IB1';
+var TRANSIT_MINUTES = TRAIN_MINUTES + WALKING_MINUTES;
 
 var NOW = new Date();
 
@@ -115,7 +116,7 @@ var etdGenerator = {
   showTrains_: function (e) {
     this.trainsLoadedAt = moment();
     this.trains = [];
-    console.log(this.trainsLoadedAt)
+    // console.log(this.trainsLoadedAt)
 
     var etds = e.target.responseXML.querySelectorAll('etd');
     for (var i = 0; i < etds.length; i++) {
@@ -134,7 +135,7 @@ var etdGenerator = {
           'direction': estimates[j].querySelector('direction').childNodes[0].nodeValue,
           'minutes': minutes,
           'moment': momentTime,
-          'homeTime': momentTime.add(TRAIN_TIME + WALKING_TIME)
+          'homeTime': moment(momentTime).add(TRANSIT_MINUTES, 'minutes')
         });
       }
     }
@@ -144,7 +145,6 @@ var etdGenerator = {
       .sort(function (a, b) {
         return a.minutes - b.minutes;
     });
-      console.log(this.trains, this.trainsLoadedAt)
   },
 
   updateTimeDisplay: function () {
@@ -209,7 +209,7 @@ muniGenerator = {
 var showBartStationTimes = function () {
   var el = document.getElementById("bart-station-times");
   BART_STATIONS.forEach( function (s) {
-    min = s[1] + WALKING_TIME;
+    min = s[1] + WALKING_MINUTES;
     station = document.createElement('li');
     station.innerHTML = '<a href="https://m.bart.gov/schedules/eta?stn=' +
       s[2] + '">' + s[0] + '</a>: ' + min + ' mins';
@@ -229,7 +229,7 @@ var setup = function () {
   showBartStationTimes();
   var intervalID = setInterval(etdGenerator.updateTimeDisplay.bind(etdGenerator), 1000);
 
-  document.getElementById("estimate-info").innerHTML = 'Arrival estimates include ' + TRAIN_TIME + ' minutes on train and ' + WALKING_TIME + ' minutes on foot.';
+  document.getElementById("estimate-info").innerHTML = 'Arrival estimates include ' + TRAIN_MINUTES + ' minutes on train and ' + WALKING_MINUTES + ' minutes on foot.';
 
   document.getElementById('reload').addEventListener('click', reloadAllTheThings);
 }
